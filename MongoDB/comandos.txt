@@ -1,0 +1,96 @@
+mongod -- começar o serviço?
+mongo -- começar os comandos
+
+cuidado pois o mongodb é case sensitive (letras maiusculas fazem diferença)
+
+comandos:
+
+
+help
+
+show dbs -- mostrar bandos de dados criados
+
+use localizapet -- usar um banco que ainda não foi criado
+
+db.createCollection('users') -- criar uma coleção no banco que esta sendo usado
+
+show collections -- mostrar coleções criadas 
+
+db.users.drop() -- dropar a coleção users
+
+db.users.insert({nome: "Rafael", sobrenome: "Meneses", idade: 23}) -- inserir dados na coleção users
+
+db.users.save({nome: "Laurita", sobrenome: "Braba", idade: 19, profissao: "dev"}) -- inserir ou atualizar dados da colection
+
+db.users.find() -- para listar os dados da coleção users
+
+db.users.find().pretty() -- para listar os dados com um formato json da coleção users
+
+outra maneira de inserir dados:
+
+db.users.insert({
+nome: "Teste",
+sobrenome: "abcd",
+idade: "20",
+contato: [{
+_id: ObjectId(),   --> caso seja necessário criar um id para cada contato
+celular: 999999999,
+telefone: 35999999,
+email: "teste@gmail.com"
+}]
+})
+
+db.users.findOne() -- vai pegar o primeiro registro
+
+db.users.find({nome: "Rafael"}) -- vai pegar os registros que contem o nome = Rafael
+
+db.users.findOne({nome: "Rafael"}) -- vai pegar o primeiro registro que tenha o nome = Rafael
+
+db.users.find({$or: [{nome: "Rafael"}, {sobrenome: "Meneses"}]}).pretty() -- vai buscar os dados com o nome = Rafael ou sobrenome = Meneses
+
+db.users.find({$and: [{nome: "Rafael"}, {sobrenome: "Meneses"}]}).pretty() -- vai buscar os dados com o nome = Rafael e sobrenome = Meneses
+
+db.users.find({nome: {$exists: true}}).pretty() -- buscar os dados que contem a coluna nome
+
+db.users.find().skip(1) -- para buscar os dados ignorando um elemento (o primeiro)
+
+db.users.find().limit(2) -- limitar a busca de dados para até 2 registros
+
+db.users.count() -- vai exibir a quantidade de dados dentro do users
+
+db.users.find({nome: "Rafael"}, {nome: 1, sobrenome: 1, id:0}) -- vai buscar somento o nome e a sigla dos resultados de Rafael
+
+db.users.find({nome: "Rafael"}, {contato.celular}) -- vai buscar somento os celulares de contato na busca de Rafael
+
+db.users.find({$or: [{nome: "Rafael"}, {nome: "Laurita"}]}).pretty() -- buscar os dados com nome = rafael ou Laurita
+
+db.users.find({nome: {$exists: true}}) -- buscar os dados que tem o campo nome
+
+db.users.find({nome: "Rafael"}, {"nome.sobrenome": "", _id: 0}) -- buscar com subfiltros e retirar o id
+
+db.users.aggregate([ -- buscas elaboradas
+    { $project: {nome: 1, "nome.sobrenome": 1, _id: 0} }
+])
+
+db.users.aggregate([
+    { $project: {idade: {$sum: "$idade"}, nome: 1, _id: 0} },
+    { $group: {_id: null, idadeTotal: {$sum: "$idade"}} },
+    { $project: { _id: 0, idadeTotal: 1 } },
+])
+
+db.users.update({nome: "Rafael"}, {$set: {b: 23}}) -- inserir novo dado nos atributos que contem rafael (primeiro parametro é o filtro e o segundo o conteudo)
+
+db.users.update({nome: "Rafael"}, {$set: {cidade: [{nome: "Porto Alegre"}]}}) --  adicionar um array de cidade
+
+db.users.update({nome: "Rafael"}, {$push: {cidade: {nome: "Novo Hamburgo"}}}) -- adicionar um objeto dentro do array cidade
+
+db.users.remove({nome: "Teste"}) -- remover todos registros com nome Teste
+
+db.users.remove({nome: {$exists: true}}, 1) -- remover os registros que tem o atributo Nome (o ultimo parametro é para apagar apenas um registro)
+
+db.users.remove({idade: {$lt: 20}}) -- remover os registros que tem idade menor que 20 anos
+
+db.job.insert({nome: "Dev", usersId: ObjectId("611820170564948385796bb1")}) -- atribuiu uma informação em uma nova tabela job relacionando pelo ObjectId de users
+
+db.job.aggregate([{$match: {nome: "Dev"}}, {$lookup: {from: "users", localField: "usersId", foreignField: "_id", as: "job"}}]).pretty()
+	
